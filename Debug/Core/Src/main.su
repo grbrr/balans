@@ -1,0 +1,11 @@
+main.c:105:6:getChannelValuePPM	16	static
+main.c:114:10:getValuePPM	16	static
+main.c:118:24:LL_SYSTICK_IsActiveCounterFlag	4	static
+main.c:123:10:getCurrentMicros	24	static
+main.c:136:9:map	24	static
+main.c:140:7:mapfloat	32	static
+main.c:150:5:main	32	static
+main.c:328:6:SystemClock_Config	88	static
+main.c:363:6:HAL_UART_RxCpltCallback	16	static
+main.c:370:6:HAL_GPIO_EXTI_Callback	32	static
+main.c:390:6:Error_Handler	4	static,ignoring_inline_asm
