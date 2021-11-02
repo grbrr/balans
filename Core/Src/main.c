@@ -1,24 +1,25 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
@@ -45,6 +46,9 @@
 #define RC_CH2_NEUTRAL   1500.0
 #define RC_CH2_MAX       2000.0
 #define RC_CH2_MIN       1000.0
+
+//#define mpu6050
+#define aparatura
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,12 +64,15 @@ uint8_t byte;
 float acctheta = 0, gyrotheta = 0, theta = 0, gyrotesttheta = 0;
 unsigned long loop_timer;
 float time = 0;
+_Bool mpu6050_ready = 0, start = 0;
+float potentiometer;
+float x, y;
 
-int ograniczenie_regulatora = 400;
-float k_p = 2;
-float k_i = 0;
-float k_d = 0;
-float e_n, suma_e_n = 0, theta_ref = 0, pid_output = 0, poprzedni_e_n = 0;
+int ograniczenie_regulatora = 200;
+float k_p = 25;
+float k_i = 0.3;
+float k_d = 1200;
+float e_n, suma_e_n = 0, theta_ref = 80, pid_output = 0, poprzedni_e_n = 0;
 
 int16_t Relay = 11;
 int16_t Jazda = 0;
@@ -144,59 +151,60 @@ float mapfloat(float x, float in_min, float in_max, float out_min,
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
+	/* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+	/* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+	/* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+	/* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+	/* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_I2C1_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
-	MPU6050_Init();				//może podmienić rezystory na I2C bo musiałem dać pullup software'owy
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_I2C1_Init();
+	MX_USART1_UART_Init();
+	MX_USART2_UART_Init();
+	MX_ADC1_Init();
+	/* USER CODE BEGIN 2 */
+	mpu6050_ready = MPU6050_Init();	//może podmienić rezystory na I2C bo musiałem dać pullup software'owy
 
 	HAL_UART_Receive_IT(&huart2, &byte, sizeof(byte)); //oczekiwanie na przerwanie
 	loop_timer = getCurrentMicros();
-  /* USER CODE END 2 */
+	/* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	while (1) {
+		if (mpu6050_ready) {
 
-		// Check for new received data
-		Receive(&byte);
+			// Check for new received data
+			Receive(&byte);
 
-		float x, y;
-		//		Coordinates point = Coordinates();
+#ifdef aparatura
 
-		V_bok_apar = getValuePPM(1);
+
+
+		V_bok_apar = getValuePPM(1);	//predkosc boki
 		V_apar = getValuePPM(2);   //predkosc
 		Funkcja_SW = getValuePPM(7);
-		Relay_SW = getValuePPM(6);
-		V_max_apar = getValuePPM(5);
+		Relay_SW = getValuePPM(6);	//zalacz silniki
+		V_max_apar = getValuePPM(5);	//regulacja predkosci silnikow
 		Fi_max_apar = getValuePPM(8);
 
 //		for (int i = 1; i <= 8; i++) {
@@ -213,19 +221,7 @@ int main(void)
 		y = mapfloat(V_bok_apar, RC_CH1_MIN, RC_CH1_MAX, -1.0, 1.0);
 		x = mapfloat(V_apar, RC_CH2_MIN, RC_CH2_MAX, -1.0, 1.0);
 
-		//		point.fromCartesian(x, y);
-		//		point.fromPolar(point.getR(), point.getAngle() + PI / 4.0);
-
-		//		x = point.getX();
-		//		y = point.getY();
-
-		//		x *= SQRT_2;
-		//		y *= SQRT_2;
-
-		//		x = fmax(-1.0, fmin(x, 1.0));
-		//		y = fmax(-1.0, fmin(y, 1.0));
-
-		if ((Relay_SW > 1600) && (Relay_SW < 2100)) {
+		if ((Relay_SW > 1900) && (Relay_SW < 2100)) {
 			//digitalWrite(Relay,HIGH);
 			Jazda = 1;
 		} else {
@@ -256,107 +252,140 @@ int main(void)
 		if ((Robot_Fi < 5) && (Robot_Fi > -5))
 			Robot_Fi = 0;
 
-		// Send commands
-		//if (iTimeSend > timeNow) return;
-		//  iTimeSend = timeNow + TIME_SEND;
-
-		//Serial.print(" VL ");  Serial.print(VL);
-		//Serial.print(" VR ");  Serial.println(VR);
-		//Send(0, SPEED_MAX_TEST - 2*abs(iTest));
-//		Send(Robot_Fi, Robot_V);
+		Send(Robot_Fi, Robot_V);
 //		sprintf(buffer, "Robot_Fi: %d Robot_V: %d\n\r", Robot_Fi, Robot_V);
 //		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-		//Send(2, VR);
+#endif
 
-		// Calculate test command signal
-		//iTest += 10;
-		//if (iTest > iTestMax) iTest = -iTestMax;
+			/* USER CODE END WHILE */
 
-    /* USER CODE END WHILE */
+			/* USER CODE BEGIN 3 */
+#ifdef mpu6050
+			potentiometer = 0.0;
+			for (int i = 0; i < 10; i++) {
+				HAL_ADC_Start(&hadc1);
+				HAL_ADC_PollForConversion(&hadc1, 100);
+				potentiometer += mapfloat(HAL_ADC_GetValue(&hadc1), 0, 1023, -5,
+						5);
+			}
+			potentiometer /= 10;
 
-    /* USER CODE BEGIN 3 */
-		/////////////testy MPU6050/////////////////////////////////
-		acctheta = MPU6050_Read_Accel();
-		gyrotheta = MPU6050_Read_Gyro(time);
-		gyrotesttheta += (gyrotheta * time);
-		theta = 0.9995 * (theta + gyrotheta * time) + (1 - 0.9995) * acctheta;
-//		sprintf(buffer, "%3.2f, %3.2f, %3.2f\n\r", acctheta, gyrotesttheta, theta);
-//		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+//			sprintf(buffer, "%3.2f %3.2f\n\r", potentiometer, theta);
+//			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
 
-		//definicja uchybu - aktualny kat odjac kat zadany
-		e_n = theta_ref - theta;
+			acctheta = MPU6050_Read_Accel();
+			gyrotheta = MPU6050_Read_Gyro(time);
+			gyrotesttheta += (gyrotheta * time);
+			theta = 0.9995 * (theta + gyrotheta * time)
+					+ (1 - 0.9995) * acctheta;
+//			sprintf(buffer, "%3.2f, %3.2f, %3.2f\n\r", acctheta, gyrotesttheta,
+//					theta);
+//			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
 
-		//Obliczenie i ograniczenie sumy wszystkich błędów
-		suma_e_n += e_n;
-		if (suma_e_n > ograniczenie_regulatora)
-			suma_e_n = ograniczenie_regulatora;
-		else if (suma_e_n < -ograniczenie_regulatora)
-			suma_e_n = -ograniczenie_regulatora;
-		//PID
-		pid_output = k_p * e_n + k_i * suma_e_n + k_d * (e_n - poprzedni_e_n);
+			//bezpieczenstwo
+			if (start == 0 && (acctheta > (theta_ref - 0.5))
+					&& (acctheta < (theta_ref + 0.5))) {
+				start = 1;
+			}
 
-		//ograniczenie wyjścia PID
-		if (pid_output > ograniczenie_regulatora)
-			pid_output = ograniczenie_regulatora;
-		else if (pid_output < -ograniczenie_regulatora)
-			pid_output = -ograniczenie_regulatora;
+			Relay_SW = getValuePPM(6);	//zalacz silniki
+			if ((Relay_SW > 1900) && (Relay_SW < 2100)
+					&& (theta > (theta_ref - 30)) && (theta < (theta_ref + 30))
+					&& start == 1) {
+				//digitalWrite(Relay,HIGH);
+				Jazda = 1;
+				//gyrotheta=theta;
+			} else {
+				//digitalWrite(Relay,LOW);
+				Jazda = 0;
+				suma_e_n = 0;
+				pid_output = 0;
+				start = 0;
+			}
+//			sprintf(buffer, "%d, %d, %3.2f, %d\n\r", start, Relay_SW, theta, Jazda);
+//			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+			V_apar = getValuePPM(2);   //predkosc
+			x = mapfloat(V_apar, RC_CH2_MIN, RC_CH2_MAX, -100.0, 100.0);
+			//definicja uchybu - aktualny kat odjac kat zadany
+			//theta_ref += x;
+			e_n = theta_ref - theta - potentiometer;
 
-		//Zapamiętanie ostatniego błędu
-		poprzedni_e_n = e_n;
+			//Obliczenie i ograniczenie sumy wszystkich błędów
+			suma_e_n += e_n;
+			if (suma_e_n > ograniczenie_regulatora)
+				suma_e_n = ograniczenie_regulatora;
+			else if (suma_e_n < -ograniczenie_regulatora)
+				suma_e_n = -ograniczenie_regulatora;
+			//PID
+			pid_output = k_p * e_n + k_i * suma_e_n
+					+ k_d * (e_n - poprzedni_e_n);
 
-		//przełącznik histerezowy (zapobiega ciągłym próbom regulacji w pobliżu theta_ref)
-		if (pid_output < 10 && pid_output > -10)
-			pid_output = 0;
+			//ograniczenie wyjścia PID
+			if (pid_output > ograniczenie_regulatora)
+				pid_output = ograniczenie_regulatora;
+			else if (pid_output < -ograniczenie_regulatora)
+				pid_output = -ograniczenie_regulatora;
 
-		Robot_V = pid_output;
+			//Zapamiętanie ostatniego błędu
+			poprzedni_e_n = e_n;
 
-		Send(Robot_Fi, Robot_V);
-		sprintf(buffer, "Robot_Fi: %d Robot_V: %d\n\r", Robot_Fi, Robot_V);
-		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+			//przełącznik histerezowy (zapobiega ciągłym próbom regulacji w pobliżu theta_ref)
+//			if (pid_output < theta_ref+0.5 && pid_output > theta_ref-0.5)
+//				pid_output = 0;
 
-		time = (getCurrentMicros() - loop_timer) * 1e-6;
-		loop_timer = getCurrentMicros();
+			if (Jazda == 1) {
+				Robot_V = pid_output+0;
+				Robot_Fi = 0;
+			} else {
+				Robot_V = 0;
+				Robot_Fi = 0;
+			}
 
-  }
-  /* USER CODE END 3 */
+			Send(Robot_Fi, Robot_V);
+			//sprintf(buffer, "Robot_Fi: %d Robot_V: %d\n\r", Robot_Fi, Robot_V);
+			sprintf(buffer, "%d %d\n\r", Robot_Fi, Robot_V);
+			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+#endif
+			time = (getCurrentMicros() - loop_timer) * 1e-6;
+			loop_timer = getCurrentMicros();
+		}
+	}
+	/* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	/** Configure the main internal regulator output voltage
+	 */
+	__HAL_RCC_PWR_CLK_ENABLE();
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+	/** Initializes the RCC Oscillators according to the specified parameters
+	 * in the RCC_OscInitTypeDef structure.
+	 */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		Error_Handler();
+	}
+	/** Initializes the CPU, AHB and APB buses clocks
+	 */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+		Error_Handler();
+	}
 }
 
 /* USER CODE BEGIN 4 */
@@ -384,18 +413,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
+	/* USER CODE BEGIN Error_Handler_Debug */
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
+	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT

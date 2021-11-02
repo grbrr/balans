@@ -23,7 +23,7 @@
 #define TEMP_OUT_H 0x41
 #define GYRO_XOUT_H 0x43
 
-void MPU6050_Init(void);
+_Bool MPU6050_Init(void);
 float MPU6050_Read_Accel(void);
 float MPU6050_Read_Gyro(float time);
 float kalibracja_acc(void);
