@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +31,7 @@
 #include "string.h"
 #include "hoverserial.h"
 #include "mpu6050.h"
+#include "ibus.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,8 +49,9 @@
 #define RC_CH2_MAX       2000.0
 #define RC_CH2_MIN       1000.0
 
-//#define mpu6050
-#define aparatura
+#define mpu6050
+//#define aparatura
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -66,7 +69,6 @@ unsigned long loop_timer;
 float time = 0;
 _Bool mpu6050_ready = 0, start = 0;
 float potentiometer;
-float x, y;
 
 int ograniczenie_regulatora = 200;
 float k_p = 25;
@@ -95,10 +97,8 @@ int16_t V_nierownosc = 0;
 int16_t Relay_SW = 0;
 int16_t Funkcja_SW = 0;
 
-uint8_t pulse = 0;
-const uint8_t no_of_channels = 8;
-uint16_t channels[9];	//[no_of_channels + 1];
-uint32_t timers[10];	//[no_of_channels + 2];
+uint16_t ibus_data[IBUS_USER_CHANNELS];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,19 +109,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void getChannelValuePPM(uint8_t pointer) {
-	channels[pointer - 1] = timers[pointer] - timers[pointer - 1];
-	if (channels[pointer - 1] > 3000) {
-		timers[0] = timers[pointer];
-		pulse = 1;
-	} else
-		pulse++;
-}
-
-uint32_t getValuePPM(uint8_t channel) {
-	return channels[channel - 1];
-}
-
 static inline uint32_t LL_SYSTICK_IsActiveCounterFlag(void) {
 	return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
 			== (SysTick_CTRL_COUNTFLAG_Msk));
@@ -148,6 +135,7 @@ float mapfloat(float x, float in_min, float in_max, float out_min,
 		float out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 /* USER CODE END 0 */
 
 /**
@@ -180,12 +168,15 @@ int main(void) {
 	MX_I2C1_Init();
 	MX_USART1_UART_Init();
 	MX_USART2_UART_Init();
+	MX_DMA_Init();
+	MX_USART6_UART_Init();
 	MX_ADC1_Init();
 	/* USER CODE BEGIN 2 */
 	mpu6050_ready = MPU6050_Init();	//może podmienić rezystory na I2C bo musiałem dać pullup software'owy
-
+	ibus_init();
 	HAL_UART_Receive_IT(&huart2, &byte, sizeof(byte)); //oczekiwanie na przerwanie
 	loop_timer = getCurrentMicros();
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -196,65 +187,42 @@ int main(void) {
 			// Check for new received data
 			Receive(&byte);
 
+			ibus_read(ibus_data);
+			ibus_soft_failsafe(ibus_data, 10); // if ibus is not updated, clear ibus data.
+
+			V_bok_apar = ibus_data[1 - 1];	//predkosc boki
+			V_apar = ibus_data[2 - 1];   //predkosc
+//			Funkcja_SW = ibus_data[7-1];
+			Relay_SW = ibus_data[6 - 1];	//zalacz silniki
+			V_max_apar = ibus_data[5 - 1];	//regulacja predkosci silnikow
+//			Fi_max_apar = ibus_data[8-1];
+
 #ifdef aparatura
 
+			V_max = map(V_max_apar, 1000, 2000, 0, 400);
+			//                                      / tu jest wartocm maskymalnej rotacji
+			Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
 
+			if ((Relay_SW > 1900) && (Relay_SW < 2100)) {
+				Jazda = 1;
+			} else {
+				Jazda = 0;
+			}
 
-		V_bok_apar = getValuePPM(1);	//predkosc boki
-		V_apar = getValuePPM(2);   //predkosc
-		Funkcja_SW = getValuePPM(7);
-		Relay_SW = getValuePPM(6);	//zalacz silniki
-		V_max_apar = getValuePPM(5);	//regulacja predkosci silnikow
-		Fi_max_apar = getValuePPM(8);
+			if (Jazda == 1) {
+				Robot_V = map(V_apar, 1000, 2000, -V_max, V_max);
+				Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+			} else {
+				Robot_V = 0;
+				Robot_Fi = 0;
+			}
+			if ((Robot_V < 5) && (Robot_V > -5))
+				Robot_V = 0;
+			if ((Robot_Fi < 5) && (Robot_Fi > -5))
+				Robot_Fi = 0;
 
-//		for (int i = 1; i <= 8; i++) {
-//			sprintf(buffer, " K: %d %lu ", i, getValuePPM(i));
-//			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-//		}
-//		sprintf(buffer, "\n\r");
-//		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-
-		V_max = map(V_max_apar, 1000, 2000, 0, 400);
-		//                                      / tu jest wartocm maskymalnej rotacji
-		Fi_max = map(Fi_max_apar, 1000, 2000, 0, 400);
-
-		y = mapfloat(V_bok_apar, RC_CH1_MIN, RC_CH1_MAX, -1.0, 1.0);
-		x = mapfloat(V_apar, RC_CH2_MIN, RC_CH2_MAX, -1.0, 1.0);
-
-		if ((Relay_SW > 1900) && (Relay_SW < 2100)) {
-			//digitalWrite(Relay,HIGH);
-			Jazda = 1;
-		} else {
-			//digitalWrite(Relay,LOW);
-			Jazda = 0;
-		}
-
-		if (Jazda == 1) {
-			VR = mapfloat(x, -1.0, 1.0, -V_max, V_max);
-			VL = mapfloat(y, -1.0, 1.0, -V_max, V_max);
-			Robot_V = map(V_apar, 1000, 2000, -V_max, V_max);
-			Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
-
-		} else {
-			//Serial.println("Jazda 0");
-			VL = 0;
-			VR = 0;
-			Robot_V = 0;
-			Robot_Fi = 0;
-		}
-
-		if ((VL < 5) && (VL > -5))
-			VL = 0;
-		if ((VR < 5) && (VR > -5))
-			VR = 0;
-		if ((Robot_V < 5) && (Robot_V > -5))
-			Robot_V = 0;
-		if ((Robot_Fi < 5) && (Robot_Fi > -5))
-			Robot_Fi = 0;
-
-		Send(Robot_Fi, Robot_V);
-//		sprintf(buffer, "Robot_Fi: %d Robot_V: %d\n\r", Robot_Fi, Robot_V);
-//		HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+			Send(Robot_Fi, Robot_V);
+			HAL_Delay(7);
 #endif
 
 			/* USER CODE END WHILE */
@@ -288,7 +256,7 @@ int main(void) {
 				start = 1;
 			}
 
-			Relay_SW = getValuePPM(6);	//zalacz silniki
+	//		Relay_SW = getValuePPM(6);	//zalacz silniki
 			if ((Relay_SW > 1900) && (Relay_SW < 2100)
 					&& (theta > (theta_ref - 30)) && (theta < (theta_ref + 30))
 					&& start == 1) {
@@ -304,8 +272,7 @@ int main(void) {
 			}
 //			sprintf(buffer, "%d, %d, %3.2f, %d\n\r", start, Relay_SW, theta, Jazda);
 //			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-			V_apar = getValuePPM(2);   //predkosc
-			x = mapfloat(V_apar, RC_CH2_MIN, RC_CH2_MAX, -100.0, 100.0);
+
 			//definicja uchybu - aktualny kat odjac kat zadany
 			//theta_ref += x;
 			e_n = theta_ref - theta - potentiometer;
@@ -334,7 +301,7 @@ int main(void) {
 //				pid_output = 0;
 
 			if (Jazda == 1) {
-				Robot_V = pid_output+0;
+				Robot_V = pid_output + 0;			//+x
 				Robot_Fi = 0;
 			} else {
 				Robot_V = 0;
@@ -394,21 +361,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		data_available = 1;
 		//ponowne wywołanie oczekiwania na przerwania dzieje się po przetworzeniu danych w hoverserial.c
 	}
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == PPM_EXTI_Pin) { //sprawdzenie czy właściwy PIN (uwaga, aktualnie ustawiony sprzętowy pullup)
-		//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
-		uint8_t state_now = HAL_GPIO_ReadPin(PPM_EXTI_GPIO_Port, PPM_EXTI_Pin); //tylko port C w tym momencie
-		if (state_now == 1) {
-			timers[pulse] = getCurrentMicros();
-			if (pulse > 0) {
-				getChannelValuePPM(pulse);
-			} else
-				pulse++;
-		}
-	}
+	if (huart == IBUS_UART)
+		ibus_reset_failsafe();
 }
 /* USER CODE END 4 */
 
