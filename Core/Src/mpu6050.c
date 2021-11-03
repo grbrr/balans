@@ -94,8 +94,8 @@ float MPU6050_Read_Gyro(float time) {
 }
 
 float kalibracja_acc(void) {
-	for (int i = 0; i < 10000; i++) {
-		if (i % 200 == 0)
+	for (int i = 0; i < 5000; i++) {
+		if (i % 400 == 0)
 			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 		uint8_t Rec_Data[6];
@@ -109,14 +109,14 @@ float kalibracja_acc(void) {
 
 		acc_calibr += atan2((float) acc_rawX, (float) acc_rawZ) * -180 / M_PI;
 	}
-	acc_calibr /= 10000;
+	acc_calibr /= 5000;
 
 	return acc_calibr;
 }
 
 float kalibracja_gyro(void) {
-	for (int i = 0; i < 10000; i++) {
-		if (i % 200 == 0)
+	for (int i = 0; i < 5000; i++) {
+		if (i % 400 == 0)
 			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); //migająca dioda - informacja o procesie kalibracji
 		uint8_t Rec_Data[6];
 		HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, GYRO_XOUT_H, 1, Rec_Data, 6,
@@ -128,7 +128,7 @@ float kalibracja_gyro(void) {
 		gyro_calibr += Gyro_Y_RAW;
 
 	}
-	gyro_calibr /= 10000;                                      //wartosc srednia
+	gyro_calibr /= 5000;                                      //wartosc srednia
 
 	return gyro_calibr;
 }

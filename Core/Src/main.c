@@ -229,6 +229,34 @@ int main(void) {
 
 			/* USER CODE BEGIN 3 */
 #ifdef mpu6050
+			if(!start)
+			{
+				V_max = map(V_max_apar, 1000, 2000, 0, 1500);
+				//                                      / tu jest wartocm maskymalnej rotacji
+				Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
+
+				if ((Relay_SW > 1900) && (Relay_SW < 2100)) {
+					Jazda = 1;
+				} else {
+					Jazda = 0;
+				}
+
+				if (Jazda == 1) {
+					Robot_V = map(V_apar, 1000, 2000, -V_max, V_max);
+					Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+				} else {
+					Robot_V = 0;
+					Robot_Fi = 0;
+				}
+				if ((Robot_V < 5) && (Robot_V > -5))
+					Robot_V = 0;
+				if ((Robot_Fi < 5) && (Robot_Fi > -5))
+					Robot_Fi = 0;
+
+				Send(Robot_Fi, Robot_V);
+				HAL_Delay(7);
+			}
+
 			potentiometer = 0.0;
 			for (int i = 0; i < 10; i++) {
 				HAL_ADC_Start(&hadc1);
@@ -300,12 +328,13 @@ int main(void) {
 //			if (pid_output < theta_ref+0.5 && pid_output > theta_ref-0.5)
 //				pid_output = 0;
 
-			if (Jazda == 1) {
+			if (Jazda == 1 && start == 1) {
 				Robot_V = pid_output + 0;			//+x
 				Robot_Fi = 0;
 			} else {
 				Robot_V = 0;
 				Robot_Fi = 0;
+				start = 0;
 			}
 
 			Send(Robot_Fi, Robot_V);
