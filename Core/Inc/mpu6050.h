@@ -8,8 +8,8 @@
 #ifndef INC_MPU6050_H_
 #define INC_MPU6050_H_
 
-#include "main.h"
 #include "i2c.h"
+#include <math.h>
 
 #define MPU6050_ADDR 0xD0
 

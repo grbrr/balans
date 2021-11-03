@@ -1,0 +1,5 @@
+additives.c:10:9:map	24	static
+additives.c:15:7:mapfloat	32	static
+additives.c:20:24:LL_SYSTICK_IsActiveCounterFlag	4	static
+additives.c:25:10:getCurrentMicros	24	static
+additives.c:38:7:potentiometer_value	16	static

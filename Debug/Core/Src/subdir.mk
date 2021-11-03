@@ -6,6 +6,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/adc.c \
+../Core/Src/additives.c \
 ../Core/Src/dma.c \
 ../Core/Src/gpio.c \
 ../Core/Src/hoverserial.c \
@@ -13,6 +14,8 @@ C_SRCS += \
 ../Core/Src/ibus.c \
 ../Core/Src/main.c \
 ../Core/Src/mpu6050.c \
+../Core/Src/pid.c \
+../Core/Src/setting_speed_rc.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
 ../Core/Src/stm32f4xx_it.c \
 ../Core/Src/syscalls.c \
@@ -22,6 +25,7 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/adc.o \
+./Core/Src/additives.o \
 ./Core/Src/dma.o \
 ./Core/Src/gpio.o \
 ./Core/Src/hoverserial.o \
@@ -29,6 +33,8 @@ OBJS += \
 ./Core/Src/ibus.o \
 ./Core/Src/main.o \
 ./Core/Src/mpu6050.o \
+./Core/Src/pid.o \
+./Core/Src/setting_speed_rc.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
 ./Core/Src/stm32f4xx_it.o \
 ./Core/Src/syscalls.o \
@@ -38,6 +44,7 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/adc.d \
+./Core/Src/additives.d \
 ./Core/Src/dma.d \
 ./Core/Src/gpio.d \
 ./Core/Src/hoverserial.d \
@@ -45,6 +52,8 @@ C_DEPS += \
 ./Core/Src/ibus.d \
 ./Core/Src/main.d \
 ./Core/Src/mpu6050.d \
+./Core/Src/pid.d \
+./Core/Src/setting_speed_rc.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
 ./Core/Src/stm32f4xx_it.d \
 ./Core/Src/syscalls.d \

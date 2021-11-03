@@ -1,5 +1,5 @@
-mpu6050.c:24:7:MPU6050_Init	32	static
-mpu6050.c:65:7:MPU6050_Read_Accel	40	static
-mpu6050.c:83:7:MPU6050_Read_Gyro	40	static
-mpu6050.c:96:7:kalibracja_acc	48	static
-mpu6050.c:117:7:kalibracja_gyro	40	static
+mpu6050.c:23:7:MPU6050_Init	32	static
+mpu6050.c:64:7:MPU6050_Read_Accel	40	static
+mpu6050.c:82:7:MPU6050_Read_Gyro	40	static
+mpu6050.c:95:7:kalibracja_acc	48	static
+mpu6050.c:116:7:kalibracja_gyro	40	static

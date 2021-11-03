@@ -6,9 +6,6 @@
  */
 
 #include "hoverserial.h"
-#include "stdio.h"
-#include "string.h"
-
 
 // ########################## DEFINES ##########################
 

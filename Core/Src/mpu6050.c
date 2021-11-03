@@ -6,7 +6,6 @@
  */
 
 #include "mpu6050.h"
-#include "math.h"
 
 int16_t acc_rawX = 0;
 int16_t acc_rawY = 0;
@@ -59,7 +58,7 @@ _Bool MPU6050_Init(void) {
 		mpu6050_status = 1;
 	}
 	loop_timer = HAL_GetTick();
-return mpu6050_status;
+	return mpu6050_status;
 }
 
 float MPU6050_Read_Accel(void) {
@@ -132,3 +131,4 @@ float kalibracja_gyro(void) {
 
 	return gyro_calibr;
 }
+

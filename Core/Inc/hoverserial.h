@@ -8,8 +8,9 @@
 #ifndef INC_HOVERSERIAL_H_
 #define INC_HOVERSERIAL_H_
 
-#include "main.h"
 #include "usart.h"
+#include <stdio.h>
+#include <string.h>
 
 #define START_FRAME         0xABCD     	// [-] Start frme definition for reliable serial communication
 #define TIME_SEND           100         // [ms] Sending time interval

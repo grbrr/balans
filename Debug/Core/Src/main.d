@@ -33,7 +33,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/adc.h ../Core/Inc/main.h ../Core/Inc/dma.h ../Core/Inc/i2c.h \
  ../Core/Inc/usart.h ../Core/Inc/gpio.h ../Core/Inc/hoverserial.h \
  ../Core/Inc/usart.h ../Core/Inc/mpu6050.h ../Core/Inc/i2c.h \
- ../Core/Inc/ibus.h
+ ../Core/Inc/ibus.h ../Core/Inc/additives.h ../Core/Inc/adc.h \
+ ../Core/Inc/setting_speed_rc.h ../Core/Inc/additives.h \
+ ../Core/Inc/hoverserial.h ../Core/Inc/pid.h ../Core/Inc/pid.h
 
 ../Core/Inc/main.h:
 
@@ -120,3 +122,17 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/i2c.h:
 
 ../Core/Inc/ibus.h:
+
+../Core/Inc/additives.h:
+
+../Core/Inc/adc.h:
+
+../Core/Inc/setting_speed_rc.h:
+
+../Core/Inc/additives.h:
+
+../Core/Inc/hoverserial.h:
+
+../Core/Inc/pid.h:
+
+../Core/Inc/pid.h:

@@ -1,6 +1,6 @@
-Core/Src/hoverserial.o: ../Core/Src/hoverserial.c \
- ../Core/Inc/hoverserial.h ../Core/Inc/usart.h ../Core/Inc/main.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
+Core/Src/setting_speed_rc.o: ../Core/Src/setting_speed_rc.c \
+ ../Core/Inc/setting_speed_rc.h ../Core/Inc/additives.h \
+ ../Core/Inc/main.h ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h \
@@ -30,11 +30,13 @@ Core/Src/hoverserial.o: ../Core/Src/hoverserial.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/adc.h ../Core/Inc/hoverserial.h ../Core/Inc/usart.h \
+ ../Core/Inc/pid.h
 
-../Core/Inc/hoverserial.h:
+../Core/Inc/setting_speed_rc.h:
 
-../Core/Inc/usart.h:
+../Core/Inc/additives.h:
 
 ../Core/Inc/main.h:
 
@@ -99,3 +101,11 @@ Core/Src/hoverserial.o: ../Core/Src/hoverserial.c \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+
+../Core/Inc/adc.h:
+
+../Core/Inc/hoverserial.h:
+
+../Core/Inc/usart.h:
+
+../Core/Inc/pid.h:
