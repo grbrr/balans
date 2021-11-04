@@ -9,12 +9,12 @@
 
 float e_n, poprzedni_e_n = 0;
 
-float pid_calculations(float angle, float *suma_e_n) {
+float pid_calculations(float angle, float *suma_e_n, float steering_angle) {
 	//definicja uchybu - aktualny kat odjac kat zadany
 	//theta_ref += x;
 	float potentiometer = potentiometer_value();
 
-	e_n = theta_ref - angle - potentiometer;
+	e_n = (theta_ref - steering_angle) - angle - potentiometer;
 
 	//Obliczenie i ograniczenie sumy wszystkich błędów
 	*suma_e_n += e_n;

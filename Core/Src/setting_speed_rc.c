@@ -47,7 +47,7 @@ void horizontal_control(uint16_t *control_data) {
 
 	if (Jazda == 1) {
 		Robot_V = map(V_apar, 1000, 2000, -V_max, V_max);
-		Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
 	} else {
 		Robot_V = 0;
 		Robot_Fi = 0;
@@ -61,19 +61,26 @@ void horizontal_control(uint16_t *control_data) {
 	HAL_Delay(7);//need wait a little before next usage, may reduce later (should be at least 7 ms)
 }
 
-float pid_output = 0, suma_e_n = 0;
+float pid_output = 0, suma_e_n = 0, steering_angle = 0;
 int start;
 int vertical_control(uint16_t *control_data, float angle) {
+
 	V_bok_apar = control_data[1 - 1];	//predkosc boki
 	V_apar = control_data[2 - 1];   //predkosc
 	Funkcja_SW = control_data[7 - 1];
 	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
 
-	float pid_output = pid_calculations(angle, &suma_e_n);
+	V_max = map(V_max_apar, 1000, 2000, 0, 7); //zadawany kat
+	//                                      / tu jest wartocm maskymalnej rotacji
+	Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
 
-	if ((Relay_SW > 1900) && (Relay_SW < 2100) && angle > (theta_ref - 30)
-			&& angle < (theta_ref + 30) && (Funkcja_SW > 1500)) {
+	steering_angle = mapfloat((float) V_apar, 1000, 2000, (float) -V_max,
+			(float) V_max);
+	float pid_output = pid_calculations(angle, &suma_e_n, steering_angle);
+
+	if ((Relay_SW > 1900) && (Relay_SW < 2100) && angle > (theta_ref - 45)
+			&& angle < (theta_ref + 45) && (Funkcja_SW > 1500)) {
 		Jazda = 1;
 		start = 1;
 	} else {
@@ -83,8 +90,20 @@ int vertical_control(uint16_t *control_data, float angle) {
 		start = 0;
 	}
 
-	Robot_V = pid_output;
-	Robot_Fi = 0;
+	if (Jazda == 1) {
+		Robot_V = pid_output;
+		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+	} else {
+		Robot_V = 0;
+		Robot_Fi = 0;
+	}
+	if ((Robot_V < 1) && (Robot_V > -1))
+		Robot_V = 0;
+	if ((Robot_Fi < 5) && (Robot_Fi > -5))
+		Robot_Fi = 0;
+
+//	Robot_V = pid_output;
+//	Robot_Fi = 0;
 	Send(Robot_Fi, Robot_V);
 	return start;
 }

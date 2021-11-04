@@ -10,12 +10,12 @@
 
 #include "additives.h"
 
-#define ograniczenie_regulatora 200
+#define ograniczenie_regulatora 400
 #define theta_ref 80
 #define k_p 25
 #define k_i 0.3
 #define k_d 1200
 
-float pid_calculations(float angle, float *suma_e_n);
+float pid_calculations(float angle, float *suma_e_n, float steering_angle);
 
 #endif /* INC_PID_H_ */

@@ -143,16 +143,16 @@ int main(void) {
 //			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
 
 			//bezpieczenstwo
-			if (start_balancing == 0 && acctheta > (theta_ref - 0.5)
-					&& acctheta < (theta_ref + 0.5)) {
+			if (start_balancing == 0 && acctheta > (theta_ref - 1)
+					&& acctheta < (theta_ref + 1)) {
 				start_balancing = 1;
 			}
 
 			if (start_balancing == 1)
 				start_balancing = vertical_control(ibus_data, theta);
 
-		//	sprintf(buffer, "%d %d\n\r", Robot_Fi, Robot_V);
-		//	HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
+			//	sprintf(buffer, "%d %d\n\r", Robot_Fi, Robot_V);
+			//	HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
 
 			/* USER CODE END WHILE */
 
