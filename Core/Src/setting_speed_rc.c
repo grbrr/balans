@@ -46,7 +46,7 @@ void horizontal_control(uint16_t *control_data) {
 	}
 
 	if (Jazda == 1) {
-		Robot_V = map(V_apar, 1000, 2000, -V_max, V_max);
+		Robot_V = -map(V_apar, 1000, 2000, -V_max, V_max);
 		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
 	} else {
 		Robot_V = 0;
@@ -91,7 +91,7 @@ int vertical_control(uint16_t *control_data, float angle) {
 	}
 
 	if (Jazda == 1) {
-		Robot_V = pid_output;
+		Robot_V = -pid_output;
 		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
 	} else {
 		Robot_V = 0;
