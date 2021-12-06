@@ -11,7 +11,7 @@
 #include "additives.h"
 
 #define ograniczenie_regulatora 400
-#define theta_ref 80
+#define theta_ref 82
 #define k_p 25
 #define k_i 0.3
 #define k_d 1200

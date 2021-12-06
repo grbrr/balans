@@ -26,12 +26,12 @@ int16_t VL_out = 0;
 int16_t VR_out = 0;
 int16_t V_nierownosc = 0;
 int16_t Relay_SW = 0;
-int16_t Funkcja_SW = 0;
+int16_t balancing_mode = 0;
 
 void horizontal_control(uint16_t *control_data) {
 	V_bok_apar = control_data[1 - 1];	//predkosc boki
 	V_apar = control_data[2 - 1];   //predkosc
-	Funkcja_SW = control_data[7 - 1];
+	balancing_mode = control_data[8 - 1];
 	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
 
@@ -67,10 +67,12 @@ int vertical_control(uint16_t *control_data, float angle) {
 
 	V_bok_apar = control_data[1 - 1];	//predkosc boki
 	V_apar = control_data[2 - 1];   //predkosc
-	Funkcja_SW = control_data[7 - 1];
+	balancing_mode = control_data[8 - 1];
+	//correction_raw = control_data[7 - 1];
 	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
 
+	//int16_t correction_max = map(correction_raw, 1000, 2000, 0, 5);
 	V_max = map(V_max_apar, 1000, 2000, 0, 7); //zadawany kat
 	//                                      / tu jest wartocm maskymalnej rotacji
 	Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
@@ -80,7 +82,8 @@ int vertical_control(uint16_t *control_data, float angle) {
 	float pid_output = pid_calculations(angle, &suma_e_n, steering_angle);
 
 	if ((Relay_SW > 1900) && (Relay_SW < 2100) && angle > (theta_ref - 45)
-			&& angle < (theta_ref + 45) && (Funkcja_SW > 1500)) {
+			&& angle < (theta_ref + 45) && (balancing_mode > 1900)
+			&& (balancing_mode < 2100)) {
 		Jazda = 1;
 		start = 1;
 	} else {
