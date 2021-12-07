@@ -119,11 +119,13 @@ int main(void) {
 	HAL_Delay(2000);
 	mpu6050_ready = MPU6050_Init();	//może podmienić rezystory na I2C bo musiałem dać pullup software'owy
 	HAL_Delay(10);
+
 	ibus_init();
 	HAL_UART_Receive_IT(&huart2, &byte, sizeof(byte)); //oczekiwanie na przerwanie
-	loop_timer = getCurrentMicros();
+
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	loop_timer = getCurrentMicros();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -161,16 +163,16 @@ int main(void) {
 //			sprintf(buffer, "%3.2f, %3.2f, %3.2f\n\r", acctheta, gyrotesttheta,
 //					theta);
 //			HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-			if (balancing_switch > 1900 && balancing_switch < 2100) {
-				for (int i = 0; i <= 1000; i++) {
-					__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-					__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, i);
-				}
-				while (theta < 48) {
-				}
-				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
-			}
+			//if (balancing_switch > 1900 && balancing_switch < 2100) {
+			//	for (int i = 0; i <= 1000; i++) {
+			//		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+			//		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, i);
+			//	}
+			//	while (theta < 48) {
+			//	}
+			//	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+			//	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+			//}
 			//bezpieczenstwo
 			if (start_balancing == 0 && acctheta > (theta_ref - 1)
 					&& acctheta < (theta_ref + 1)) {
