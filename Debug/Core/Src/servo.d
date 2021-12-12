@@ -1,4 +1,5 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
+Core/Src/servo.o: ../Core/Src/servo.c ../Core/Inc/servo.h \
+ ../Core/Inc/tim.h ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -32,13 +33,11 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/adc.h ../Core/Inc/main.h ../Core/Inc/dma.h ../Core/Inc/i2c.h \
- ../Core/Inc/tim.h ../Core/Inc/usart.h ../Core/Inc/gpio.h \
- ../Core/Inc/hoverserial.h ../Core/Inc/usart.h ../Core/Inc/mpu6050.h \
- ../Core/Inc/i2c.h ../Core/Inc/ibus.h ../Core/Inc/additives.h \
- ../Core/Inc/adc.h ../Core/Inc/setting_speed_rc.h ../Core/Inc/additives.h \
- ../Core/Inc/hoverserial.h ../Core/Inc/pid.h ../Core/Inc/pid.h \
- ../Core/Inc/servo.h ../Core/Inc/tim.h
+ ../Core/Inc/additives.h ../Core/Inc/adc.h
+
+../Core/Inc/servo.h:
+
+../Core/Inc/tim.h:
 
 ../Core/Inc/main.h:
 
@@ -108,44 +107,6 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 
-../Core/Inc/adc.h:
-
-../Core/Inc/main.h:
-
-../Core/Inc/dma.h:
-
-../Core/Inc/i2c.h:
-
-../Core/Inc/tim.h:
-
-../Core/Inc/usart.h:
-
-../Core/Inc/gpio.h:
-
-../Core/Inc/hoverserial.h:
-
-../Core/Inc/usart.h:
-
-../Core/Inc/mpu6050.h:
-
-../Core/Inc/i2c.h:
-
-../Core/Inc/ibus.h:
-
 ../Core/Inc/additives.h:
 
 ../Core/Inc/adc.h:
-
-../Core/Inc/setting_speed_rc.h:
-
-../Core/Inc/additives.h:
-
-../Core/Inc/hoverserial.h:
-
-../Core/Inc/pid.h:
-
-../Core/Inc/pid.h:
-
-../Core/Inc/servo.h:
-
-../Core/Inc/tim.h:

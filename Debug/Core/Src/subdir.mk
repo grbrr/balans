@@ -15,6 +15,7 @@ C_SRCS += \
 ../Core/Src/main.c \
 ../Core/Src/mpu6050.c \
 ../Core/Src/pid.c \
+../Core/Src/servo.c \
 ../Core/Src/setting_speed_rc.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
 ../Core/Src/stm32f4xx_it.c \
@@ -35,6 +36,7 @@ OBJS += \
 ./Core/Src/main.o \
 ./Core/Src/mpu6050.o \
 ./Core/Src/pid.o \
+./Core/Src/servo.o \
 ./Core/Src/setting_speed_rc.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
 ./Core/Src/stm32f4xx_it.o \
@@ -55,6 +57,7 @@ C_DEPS += \
 ./Core/Src/main.d \
 ./Core/Src/mpu6050.d \
 ./Core/Src/pid.d \
+./Core/Src/servo.d \
 ./Core/Src/setting_speed_rc.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
 ./Core/Src/stm32f4xx_it.d \
