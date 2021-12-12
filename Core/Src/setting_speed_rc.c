@@ -31,9 +31,11 @@ int16_t balancing_mode = 0;
 void horizontal_control(uint16_t *control_data) {
 	V_bok_apar = control_data[1 - 1];	//predkosc boki
 	V_apar = control_data[2 - 1];   //predkosc
-	balancing_mode = control_data[8 - 1];
-	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
+	Relay_SW = control_data[6 - 1];	//zalacz silniki
+	balancing_mode = control_data[8 - 1];
+
+
 
 	V_max = map(V_max_apar, 1000, 2000, 0, 500);
 	//                                      / tu jest wartocm maskymalnej rotacji
@@ -67,10 +69,12 @@ int vertical_control(uint16_t *control_data, float angle) {
 
 	V_bok_apar = control_data[1 - 1];	//predkosc boki
 	V_apar = control_data[2 - 1];   //predkosc
+	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
+	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	balancing_mode = control_data[8 - 1];
 	//correction_raw = control_data[7 - 1];
-	Relay_SW = control_data[6 - 1];	//zalacz silniki
-	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
+
+
 
 	//int16_t correction_max = map(correction_raw, 1000, 2000, 0, 5);
 	V_max = map(V_max_apar, 1000, 2000, 0, 7); //zadawany kat
@@ -108,5 +112,5 @@ int vertical_control(uint16_t *control_data, float angle) {
 //	Robot_V = pid_output;
 //	Robot_Fi = 0;
 	Send(Robot_Fi, Robot_V);
-	return start;
+	if (start==1) return 2; else return 3;
 }
