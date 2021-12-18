@@ -22,6 +22,7 @@
 #define ACCEL_XOUT_H 0x3B
 #define TEMP_OUT_H 0x41
 #define GYRO_XOUT_H 0x43
+#define CONFIG 0x1A
 
 _Bool MPU6050_Init(void);
 float MPU6050_Read_Accel(void);

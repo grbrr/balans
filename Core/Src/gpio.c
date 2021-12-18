@@ -60,10 +60,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = leg_Pin;
+  GPIO_InitStruct.Pin = LEG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(leg_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LEG_GPIO_Port, &GPIO_InitStruct);
 
 }
 

@@ -50,8 +50,8 @@ _Bool MPU6050_Init(void) {
 		Data = 0x00;
 		HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, GYRO_CONFIG, 1, &Data, 1, 1000);
 
-		Data = 0b00000101;	////ostatnie 3 bity to filtr LPF, 43Hz 011
-		HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, 0x1A, 1, &Data, 1, 1000);
+		Data = 0b00000110;	////ostatnie 3 bity to filtr LPF, 43Hz 011
+		HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, CONFIG, 1, &Data, 1, 1000);
 
 		gyro_calibr = kalibracja_gyro();
 		acc_calibr = kalibracja_acc();

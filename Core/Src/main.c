@@ -195,7 +195,7 @@ int main(void)
 
 			if (balance_state_machine == 0) {			// 4wheel mode
 				horizontal_control(ibus_data);
-				if (HAL_GPIO_ReadPin(leg_GPIO_Port, leg_Pin)) {
+				if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
 					switch_vibrations_counter = 0;
 
 					HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
@@ -233,7 +233,7 @@ int main(void)
 				if (balance_state_machine == 2) {			// balancing
 					balance_state_machine = vertical_control(ibus_data, theta);
 					fall_counter=0;
-					if (HAL_GPIO_ReadPin(leg_GPIO_Port, leg_Pin)) {
+					if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
 						switch_vibrations_counter = 0;
 
 						HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);

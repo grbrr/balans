@@ -1,2 +1,2 @@
 setting_speed_rc.c:31:6:horizontal_control	24	static
-setting_speed_rc.c:68:5:vertical_control	32	static
+setting_speed_rc.c:68:5:vertical_control	24	static

@@ -83,7 +83,7 @@ int vertical_control(uint16_t *control_data, float angle) {
 
 	steering_angle = mapfloat((float) V_apar, 1000, 2000, (float) -V_max,
 			(float) V_max);
-	float pid_output = pid_calculations(angle, &suma_e_n, steering_angle);
+	pid_output = pid_calculations(angle, &suma_e_n, steering_angle, V_bok_apar);
 
 	if ((Relay_SW > 1900) && (Relay_SW < 2100) && angle > (theta_ref - 45)
 			&& angle < (theta_ref + 45) && (balancing_mode > 1900)

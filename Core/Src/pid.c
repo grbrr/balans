@@ -6,15 +6,16 @@
  */
 
 #include "pid.h"
+#include "math.h"
+float e_n, poprzedni_e_n = 0, auto_balance = 0;
 
-float e_n, poprzedni_e_n = 0;
-
-float pid_calculations(float angle, float *suma_e_n, float steering_angle) {
+float pid_calculations(float angle, float *suma_e_n, float steering_angle,
+		int16_t V_bok_apar) {
 	//definicja uchybu - aktualny kat odjac kat zadany
 	//theta_ref += x;
 	float potentiometer = potentiometer_value();
 
-	e_n = (theta_ref - steering_angle) - angle - potentiometer;
+	e_n = (theta_ref - steering_angle) - angle - potentiometer - auto_balance;
 
 	//Obliczenie i ograniczenie sumy wszystkich błędów
 	*suma_e_n += e_n;
@@ -35,7 +36,20 @@ float pid_calculations(float angle, float *suma_e_n, float steering_angle) {
 	poprzedni_e_n = e_n;
 
 	//przełącznik histerezowy (zapobiega ciągłym próbom regulacji w pobliżu theta_ref)
-//			if (pid_output < theta_ref+0.5 && pid_output > theta_ref-0.5)
-//				pid_output = 0;
+//	if (output < theta_ref + 0.1 && output > theta_ref - 0.1)
+//		output = 0;
+	//The self balancing point is adjusted when there is not forward or backwards movement from the transmitter. This way the robot will always find it's balancing point
+	if (steering_angle == 0) {                 //If the setpoint is zero degrees
+		if (output < 0)
+			auto_balance += 0.003; //Increase the self_balance_pid_setpoint if the robot is still moving forewards
+		else if (output > 0)
+			auto_balance -= 0.003; //Decrease the self_balance_pid_setpoint if the robot is still moving backwards
+	}
+	if (V_bok_apar < 1520 && V_bok_apar>1480) {
+		if (output > 0)
+			output = output + 40;
+		else if (output < 0)
+			output = output - 40;
+	}
 	return output;
 }
