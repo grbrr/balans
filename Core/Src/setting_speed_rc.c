@@ -12,10 +12,9 @@ int16_t Jazda = 0;
 
 int16_t Robot_V = 0;
 int16_t Robot_Fi = 0;
-int16_t V_apar = 0;
-int16_t V_bok_apar = 0;
-int16_t V_max_apar = 0;
-int16_t Fi_max_apar = 0;
+
+
+
 int16_t V = 0;
 int16_t V_bok = 0;
 int16_t V_max = 0;
@@ -25,17 +24,12 @@ int16_t VR = 0;
 int16_t VL_out = 0;
 int16_t VR_out = 0;
 int16_t V_nierownosc = 0;
-int16_t Relay_SW = 0;
-int16_t balancing_mode = 0;
 
-void horizontal_control(uint16_t *control_data) {
-	V_bok_apar = control_data[1 - 1];	//predkosc boki
-	V_apar = control_data[2 - 1];   //predkosc
-	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
-	Relay_SW = control_data[6 - 1];	//zalacz silniki
-	balancing_mode = control_data[8 - 1];
 
-	V_max = map(V_max_apar, 1000, 2000, 0, 500);
+
+void horizontal_control(int16_t V_bok_apar, int16_t V_apar, int16_t V_max_apar, int16_t Fi_max_apar, int16_t Relay_SW) {
+
+	V_max = map(V_max_apar, 1000, 2000, 0, 400);
 	//                                      / tu jest wartocm maskymalnej rotacji
 	Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
 
@@ -47,7 +41,7 @@ void horizontal_control(uint16_t *control_data) {
 
 	if (Jazda == 1) {
 		Robot_V = -map(V_apar, 1000, 2000, -V_max, V_max);
-		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+		Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
 	} else {
 		Robot_V = 0;
 		Robot_Fi = 0;
@@ -64,14 +58,7 @@ void horizontal_control(uint16_t *control_data) {
 float pid_output = 0, suma_e_n = 0, steering_angle = 0, poprzedni_e_n = 0,
 		auto_balance = 0;
 int start;
-int vertical_control(uint16_t *control_data, float angle) {
-
-	V_bok_apar = control_data[1 - 1];	//predkosc boki
-	V_apar = control_data[2 - 1];   //predkosc
-	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
-	Relay_SW = control_data[6 - 1];	//zalacz silniki
-	balancing_mode = control_data[8 - 1];
-
+int8_t vertical_control(int16_t V_bok_apar, int16_t V_apar, int16_t V_max_apar, int16_t Fi_max_apar, int16_t Relay_SW, int16_t balancing_mode, float angle) {
 
 	V_max = map(V_max_apar, 1000, 2000, 0, 7); //zadawany kat
 	//                                      / tu jest wartocm maskymalnej rotacji
@@ -98,7 +85,7 @@ int vertical_control(uint16_t *control_data, float angle) {
 
 	if (Jazda == 1) {
 		Robot_V = -pid_output;
-		Robot_Fi = -map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
+		Robot_Fi = map(V_bok_apar, 1000, 2000, -Fi_max, Fi_max);
 	} else {
 		Robot_V = 0;
 		Robot_Fi = 0;

@@ -28,7 +28,7 @@
 
 _Bool MPU6050_Init(void);
 float MPU6050_Read_Accel(void);
-float MPU6050_Read_Gyro(float time);
+float MPU6050_Read_Gyro(void);
 float kalibracja_acc(void);
 float kalibracja_gyro(void);
 

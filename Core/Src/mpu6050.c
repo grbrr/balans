@@ -73,7 +73,7 @@ float MPU6050_Read_Accel(void) {
 	return angle_acc - acc_calibr;
 }
 
-float MPU6050_Read_Gyro(float time) {
+float MPU6050_Read_Gyro() {
 
 	uint8_t i2c_data[6];	//odczytanie danych począwszy rejestru GYRO_XOUT_H
 	HAL_I2C_Mem_Read(mpuI2C, MPU6050_ADDR, GYRO_XOUT_H, 1, i2c_data, 6, 1000);

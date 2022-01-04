@@ -51,7 +51,6 @@ int16_t silnik;
 int16_t silnikbest;
 float theta;
 uint8_t balance_state_machine = 0;
-uint16_t balancing_switch;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -146,7 +145,8 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	while (1) {
-		if (mpu6050_ready) { //jeśli mpu6050 nie jest gotowe to cały program nie wystartuje i należy zrestartować kontroler/rozwiązać problemy z magistralą I2C
+		if (mpu6050_ready) {
+			//jeśli mpu6050 nie jest gotowe to cały program nie wystartuje i należy zrestartować kontroler/rozwiązać problemy z magistralą I2C
 
 			// pochodzi z hoverserial.ino
 			Receive(&byte);
@@ -154,84 +154,83 @@ int main(void) {
 			ibus_read(ibus_data);
 			ibus_soft_failsafe(ibus_data, 10); // if ibus is not updated, clear ibus data - pochodzi z biblioteki ibus
 
-			balancing_switch = ibus_data[8 - 1];
-			uint16_t Relay_SW = ibus_data[6 - 1];	//zalacz silniki
-
-			silnik = ibus_data[4 - 1];
+			int16_t V_bok_apar = ibus_data[1 - 1]; 		// predkosc boki
+			int16_t V_apar = ibus_data[2 - 1]; 			// predkosc przód
+			int16_t V_max_apar = ibus_data[5 - 1]; // regulacja maksymalnej predkosci silnikow w przód
+			int16_t Relay_SW = ibus_data[6 - 1]; 		// zalacz silniki
+			int16_t Fi_max_apar = ibus_data[7 - 1];	// regulacja maksymalnej predkosci katowej przy skrecaniu
+			int16_t balancing_mode = ibus_data[8 - 1];	// przelacz tryb jazdy
 
 			float acctheta = MPU6050_Read_Accel();
-			float gyrovelo = MPU6050_Read_Gyro(time);
-			theta = 0.9995 * (theta + gyrovelo * time)
-					+ (1 - 0.9995) * acctheta;
+			float gyrovelo = MPU6050_Read_Gyro();
 
-			camera_angle(theta);
+			theta = 0.9995 * (theta + gyrovelo * time)	//filtr komplementarny
+			+ (1 - 0.9995) * acctheta;
 
+			camera_angle(theta);	//ustawienie serwa kamery
 
-			//if (balancing_switch > 1900 && balancing_switch < 2100) {
-			//	for (int i = 0; i <= 1000; i++) {
-			//		__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-			//		__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, i);
-			//	}
-			//	while (theta < 48) {
-			//	}
-			//	__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-			//	__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-			//}
-			//bezpieczenstwo
-
-			if (balance_state_machine == 0) {			// 4wheel mode
-				horizontal_control(ibus_data);
+			// Poniżej maszyna stanów do jazdy i zmiany trybów
+			if (balance_state_machine == 0 || Relay_SW < 1900
+					|| Relay_SW > 2100) {
+				//pierwotny stan - 4wheel, jazda horyzontalna, także stan po wyłączeniu silników
+				horizontal_control(V_bok_apar, V_apar, V_max_apar, Fi_max_apar,
+						Relay_SW);
+				//jeżeli w tym trybie noga nie jest schowana to silnik nogi działa dopóki kontaktron nie wykryje obecności nogi
 				if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
 					switch_vibrations_counter = 0;
-
-					HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+					HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);//dioda do debugowania
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 50);
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-
 				} else {
 					switch_vibrations_counter++;
-					if (switch_vibrations_counter > 50) {
+					if (switch_vibrations_counter > 20) {
+						//jeżeli przez 20 iteracji programu noga jest wykrywana to wyłącz silnik (kwesta drgań styków kontaktronu)
 						HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
 						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
 						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
 					}
 				}
-				//if (theta > 1) {
-				//	__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 50);
-				//} else
-				//	__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
 			}
 			if (Relay_SW > 1900 && Relay_SW < 2100) {
-				if (balance_state_machine == 0 && balancing_switch > 1900
-						&& balancing_switch < 2100) {
-					balance_state_machine = 1;
+				//kolejne tryby pod warunkiem załączenia silników
+				if (balance_state_machine == 0 && balancing_mode > 1900
+						&& balancing_mode < 2100) {
+					balance_state_machine = 1;// przejście do stanu 1 - wstawanie jeżeli przełączono switcha
 				}
-				if (balance_state_machine == 1) {			// getting up
+
+				if (balance_state_machine == 1) {			// wstawanie
 					Send(0, 0);
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 100);
 				}
+
 				if (balance_state_machine == 1 && theta > 70) {
-					balance_state_machine = 2;
+					balance_state_machine = 2;// jeżeli osiągnięto 70 stopni - przejdź do trybu balansowania - stan 2
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
 					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
 				}
-				if (balance_state_machine == 2) {			// balancing
-					balance_state_machine = vertical_control(ibus_data, theta);
+
+				if (balance_state_machine == 2) {// balansowanie, kolejny stan zależy od wartości zwróconej przez vertical_control
+					balance_state_machine = vertical_control(V_bok_apar, V_apar,
+							V_max_apar, Fi_max_apar, Relay_SW, balancing_mode,
+							theta);
+
 					fall_counter = 0;
 					if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
-						switch_vibrations_counter = 0;
 
+						switch_vibrations_counter = 0;
 						HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
 						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 50);
 						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
 
 					} else {
+
 						switch_vibrations_counter++;
 						if (switch_vibrations_counter > 50) {
 							HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
 							__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
 							__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
+
 						}
 					}
 
