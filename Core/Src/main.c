@@ -37,6 +37,7 @@
 #include "setting_speed_rc.h"
 #include "pid.h"
 #include "servo.h"
+#include "leg_motor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,11 +47,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define motorTIM &htim3
-int16_t silnik;
-int16_t silnikbest;
-float theta;
-uint8_t balance_state_machine = 0;
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,14 +82,17 @@ int main(void) {
 	// przyklad do wysylania danych po serialu
 	// sprintf(buffer, "cos tam: %3.2f\n\r", jakis_float);
 	// HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-	uint8_t byte;
+	_Bool mpu6050_ready = 0; //zwracane przez MPU6050_Init()
 
-	_Bool mpu6050_ready = 0;
+	uint8_t balance_state_machine = 0; //maszyna stanów (stany 0 - poziomo, 1 - wstawanie, 2 - pionowo, 3 - opadanie)
 
+	uint8_t byte;	//wymagane dla ibus
 	uint16_t ibus_data[IBUS_USER_CHANNELS];
-	uint32_t loop_timer = 0;
-	float time = 0;
 
+	uint32_t fall_counter = 0; // zmienna do eksperymentalnego wyznaczania czasu opadania robota
+
+	uint32_t loop_timer = 0; //zmienne do obliczania czasu trwania pętli
+	float time = 0;
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -127,23 +127,18 @@ int main(void) {
 	HAL_Delay(10);
 
 	ibus_init();
-	ibus_read(ibus_data);
 
 	HAL_UART_Receive_IT(commUART, &byte, sizeof(byte)); //oczekiwanie na przerwanie
 
 	HAL_TIM_PWM_Start(motorTIM, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(motorTIM, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
-//	__HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 1100);
-	uint16_t switch_vibrations_counter = 0;
-	uint32_t fall_counter = 0;
-	loop_timer = getCurrentMicros();
+	HAL_TIM_PWM_Start(servoTIM, TIM_CHANNEL_1);
 
+	loop_timer = getCurrentMicros();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-
 	while (1) {
 		if (mpu6050_ready) {
 			//jeśli mpu6050 nie jest gotowe to cały program nie wystartuje i należy zrestartować kontroler/rozwiązać problemy z magistralą I2C
@@ -164,7 +159,7 @@ int main(void) {
 			float acctheta = MPU6050_Read_Accel();
 			float gyrovelo = MPU6050_Read_Gyro();
 
-			theta = 0.9995 * (theta + gyrovelo * time)	//filtr komplementarny
+			float theta = 0.9995 * (theta + gyrovelo * time)//filtr komplementarny
 			+ (1 - 0.9995) * acctheta;
 
 			camera_angle(theta);	//ustawienie serwa kamery
@@ -175,21 +170,7 @@ int main(void) {
 				//pierwotny stan - 4wheel, jazda horyzontalna, także stan po wyłączeniu silników
 				horizontal_control(V_bok_apar, V_apar, V_max_apar, Fi_max_apar,
 						Relay_SW);
-				//jeżeli w tym trybie noga nie jest schowana to silnik nogi działa dopóki kontaktron nie wykryje obecności nogi
-				if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
-					switch_vibrations_counter = 0;
-					HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);//dioda do debugowania
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 50);
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-				} else {
-					switch_vibrations_counter++;
-					if (switch_vibrations_counter > 20) {
-						//jeżeli przez 20 iteracji programu noga jest wykrywana to wyłącz silnik (kwesta drgań styków kontaktronu)
-						HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-					}
-				}
+				hide_leg();
 			}
 			if (Relay_SW > 1900 && Relay_SW < 2100) {
 				//kolejne tryby pod warunkiem załączenia silników
@@ -200,14 +181,12 @@ int main(void) {
 
 				if (balance_state_machine == 1) {			// wstawanie
 					Send(0, 0);
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 100);
+					leg_motor(-100);
 				}
 
 				if (balance_state_machine == 1 && theta > 70) {
 					balance_state_machine = 2;// jeżeli osiągnięto 70 stopni - przejdź do trybu balansowania - stan 2
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
+					leg_motor(0);
 				}
 
 				if (balance_state_machine == 2) {// balansowanie, kolejny stan zależy od wartości zwróconej przez vertical_control
@@ -216,48 +195,27 @@ int main(void) {
 							theta);
 
 					fall_counter = 0;
-					if (HAL_GPIO_ReadPin(LEG_GPIO_Port, LEG_Pin)) {
-
-						switch_vibrations_counter = 0;
-						HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 50);
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-
-					} else {
-
-						switch_vibrations_counter++;
-						if (switch_vibrations_counter > 50) {
-							HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
-							__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-							__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
-
-						}
-					}
-
+					hide_leg();
 				}
-				if (balance_state_machine == 3) {			// going down
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-					__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 75);
+				if (balance_state_machine == 3) {			// osiadanie
+					//noga jest wysuwana do pewnego stopnia zależnego od liczby iteracji - teraz 550
+					leg_motor(-90);
 					Send(0, 0);
 					fall_counter++;
-					if (fall_counter > 700) {
+					//gdy czas upłynie noga zostanie wyłączona i nastąpi przejście do stanu zero, w którym to noga znów zostanie schowana
+					if (fall_counter > 550) {
 						balance_state_machine = 0;
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_1, 0);
-						__HAL_TIM_SET_COMPARE(motorTIM, TIM_CHANNEL_2, 0);
+						leg_motor(0);
 					}
 				}
 
 			}
-
-			//	sprintf(buffer, "%d %d\n\r", Robot_Fi, Robot_V);
-			//	HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), 100);
-
+			// loop_timer przepełni się po 70 minutach, jeśli robot ma działać dłużej należy zmienić metodę pomiaru czasu
+			time = (getCurrentMicros() - loop_timer) * 1e-6;
+			loop_timer = getCurrentMicros();
 			/* USER CODE END WHILE */
 
 			/* USER CODE BEGIN 3 */
-
-			time = (getCurrentMicros() - loop_timer) * 1e-6;
-			loop_timer = getCurrentMicros();
 		}
 	}
 	/* USER CODE END 3 */

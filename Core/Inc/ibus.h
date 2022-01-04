@@ -12,7 +12,6 @@
 #define __IBUS_H__
 
 #include "usart.h"              // header from stm32cubemx code generate
-#include <stdbool.h>
 
 /* User configuration */
 #define IBUS_UART				(&huart6)
@@ -25,11 +24,11 @@
 
 /* Main Functions */
 void ibus_init();
-bool ibus_read(uint16_t *ibus_data);
+_Bool ibus_read(uint16_t *ibus_data);
 
 /* Sub Functions */
-bool ibus_is_valid();
-bool ibus_checksum();
+_Bool ibus_is_valid();
+_Bool ibus_checksum();
 void ibus_update(uint16_t *ibus_data);
 void ibus_soft_failsafe(uint16_t *ibus_data, uint8_t fail_safe_max);
 void ibus_reset_failsafe();

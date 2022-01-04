@@ -12,6 +12,7 @@ C_SRCS += \
 ../Core/Src/hoverserial.c \
 ../Core/Src/i2c.c \
 ../Core/Src/ibus.c \
+../Core/Src/leg_motor.c \
 ../Core/Src/main.c \
 ../Core/Src/mpu6050.c \
 ../Core/Src/pid.c \
@@ -33,6 +34,7 @@ OBJS += \
 ./Core/Src/hoverserial.o \
 ./Core/Src/i2c.o \
 ./Core/Src/ibus.o \
+./Core/Src/leg_motor.o \
 ./Core/Src/main.o \
 ./Core/Src/mpu6050.o \
 ./Core/Src/pid.o \
@@ -54,6 +56,7 @@ C_DEPS += \
 ./Core/Src/hoverserial.d \
 ./Core/Src/i2c.d \
 ./Core/Src/ibus.d \
+./Core/Src/leg_motor.d \
 ./Core/Src/main.d \
 ./Core/Src/mpu6050.d \
 ./Core/Src/pid.d \

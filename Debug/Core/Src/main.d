@@ -38,7 +38,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/i2c.h ../Core/Inc/ibus.h ../Core/Inc/additives.h \
  ../Core/Inc/adc.h ../Core/Inc/setting_speed_rc.h ../Core/Inc/additives.h \
  ../Core/Inc/hoverserial.h ../Core/Inc/pid.h ../Core/Inc/pid.h \
- ../Core/Inc/servo.h ../Core/Inc/tim.h
+ ../Core/Inc/servo.h ../Core/Inc/tim.h ../Core/Inc/leg_motor.h
 
 ../Core/Inc/main.h:
 
@@ -149,3 +149,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/servo.h:
 
 ../Core/Inc/tim.h:
+
+../Core/Inc/leg_motor.h:

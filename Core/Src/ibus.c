@@ -16,25 +16,25 @@ void ibus_init() {
 	HAL_UART_Receive_DMA(IBUS_UART, uart_rx_buffer, 32);
 }
 
-bool ibus_read(uint16_t *ibus_data) {
+_Bool ibus_read(uint16_t *ibus_data) {
 	if (!ibus_is_valid())
-		return false;
+		return 0;
 
 	if (!ibus_checksum())
-		return false;
+		return 0;
 
 	ibus_update(ibus_data);
-	return true;
+	return 1;
 }
 
 /* Sub Functions */
-bool ibus_is_valid() {
+_Bool ibus_is_valid() {
 	// is it ibus?
 	return (uart_rx_buffer[0] == IBUS_LENGTH
 			&& uart_rx_buffer[1] == IBUS_COMMAND40);
 }
 
-bool ibus_checksum() {
+_Bool ibus_checksum() {
 	uint16_t checksum_cal = 0xffff;
 	uint16_t checksum_ibus;
 

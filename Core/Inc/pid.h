@@ -9,7 +9,7 @@
 #define INC_PID_H_
 
 #include "additives.h"
-#include "main.h"
+#include <stdint.h>
 
 
 #define ograniczenie_regulatora 400

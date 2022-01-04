@@ -12,7 +12,6 @@
 #include "additives.h"
 #include "hoverserial.h"
 #include "pid.h"
-#include "main.h"
 
 #define RC_CH1_NEUTRAL   1500.0
 #define RC_CH1_MAX       2000.0

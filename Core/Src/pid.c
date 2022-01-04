@@ -15,7 +15,7 @@ float pid_calculations(float angle, float *suma_e_n, float *poprzedni_e_n,
 		float *auto_balance, float steering_angle, int16_t V_bok_apar) {
 
 	float potentiometer = potentiometer_value();
-	//definicja uchybu - aktualny kat odjac kat zadany
+	//definicja uchybu - kat referencyjny (być może zmieniony aparaturą) odjąć kąt aktualny z uwzględnioną autokalibracją i potencjometrem
 	e_n = (theta_ref - steering_angle) - angle - potentiometer - *auto_balance;
 	//Obliczenie i ograniczenie sumy wszystkich błędów
 	*suma_e_n += e_n;
@@ -35,16 +35,15 @@ float pid_calculations(float angle, float *suma_e_n, float *poprzedni_e_n,
 	//Zapamiętanie ostatniego błędu
 	*poprzedni_e_n = e_n;
 
-	//przełącznik histerezowy (zapobiega ciągłym próbom regulacji w pobliżu theta_ref)
-//	if (output < theta_ref + 0.1 && output > theta_ref - 0.1)
-//		output = 0;
-	//The self balancing point is adjusted when there is not forward or backwards movement from the transmitter. This way the robot will always find it's balancing point
-	if (steering_angle == 0) {                 //If the setpoint is zero degrees
+	//Robot poszukuje punktu równowagi jeżeli się przemieszcza
+	if (steering_angle == 0) {                 //jeżeli nie podano ką
 		if (output < 0)
-			*auto_balance += 0.003; //Increase the self_balance_pid_setpoint if the robot is still moving forewards
+			*auto_balance += 0.003; //zwiększ autokalibrację jeśli porusza się do przodu
 		else if (output > 0)
-			*auto_balance -= 0.003; //Decrease the self_balance_pid_setpoint if the robot is still moving backwards
+			*auto_balance -= 0.003; //zmniejsz autkalibrację jeśli porusza się do tyłu
 	}
+	// przesunięcie wyjścia PID o 40 jeżeli przemieszcza się tylko do przodu (przy skręcaniu powoduje to duże drgania, więc wtedy nieaktywne)
+	// silniki BLDC zaczynają reagować dopiero powyżej wartości 40 podanej do sterownika
 	if (V_bok_apar < 1520 && V_bok_apar > 1480) {
 		if (output > 0)
 			output = output + 40;

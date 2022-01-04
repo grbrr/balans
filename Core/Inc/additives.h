@@ -10,7 +10,6 @@
 #define INC_ADDITIVES_H_
 
 #include <stdint.h>
-#include "main.h"
 #include "adc.h"
 
 uint32_t getCurrentMicros(void);
