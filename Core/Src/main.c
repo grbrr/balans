@@ -28,8 +28,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include <string.h>
+//#include <stdio.h> not needed if no debugging
+//#include <string.h>
 #include "hoverserial.h"
 #include "mpu6050.h"
 #include "ibus.h"

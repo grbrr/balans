@@ -39,9 +39,9 @@ float mapfloat(float x, float in_min, float in_max, float out_min,
 float potentiometer_value(void) {
 	float x = 0.0;
 	for (int i = 0; i < 10; i++) {
-		HAL_ADC_Start(&hadc1);
-		HAL_ADC_PollForConversion(&hadc1, 100);
-		x += mapfloat(HAL_ADC_GetValue(&hadc1), 0, 1023, -5, 5);
+		HAL_ADC_Start(potentiometerADC);
+		HAL_ADC_PollForConversion(potentiometerADC, 100);
+		x += mapfloat(HAL_ADC_GetValue(potentiometerADC), 0, 1023, -5, 5);
 	}
 	x /= 10;
 	return x;

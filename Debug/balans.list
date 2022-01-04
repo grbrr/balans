@@ -35,15 +35,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  15 .debug_ranges 00001130  00000000  00000000  000417c8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  0001b3f1  00000000  00000000  000428f8  2**0
+ 16 .debug_macro  0001b40f  00000000  00000000  000428f8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0001ad79  00000000  00000000  0005dce9  2**0
+ 17 .debug_line   0001ad79  00000000  00000000  0005dd07  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0009e001  00000000  00000000  00078a62  2**0
+ 18 .debug_str    0009e013  00000000  00000000  00078a80  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  00116a63  2**0
+ 19 .comment      00000053  00000000  00000000  00116a93  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00005e88  00000000  00000000  00116ab8  2**2
+ 20 .debug_frame  00005e88  00000000  00000000  00116ae8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1625,14 +1625,14 @@ float potentiometer_value(void) {
  80011a8:	2300      	movs	r3, #0
  80011aa:	603b      	str	r3, [r7, #0]
  80011ac:	e024      	b.n	80011f8 <potentiometer_value+0x5c>
-		HAL_ADC_Start(&hadc1);
+		HAL_ADC_Start(potentiometerADC);
  80011ae:	481c      	ldr	r0, [pc, #112]	; (8001220 <potentiometer_value+0x84>)
  80011b0:	f002 f96a 	bl	8003488 <HAL_ADC_Start>
-		HAL_ADC_PollForConversion(&hadc1, 100);
+		HAL_ADC_PollForConversion(potentiometerADC, 100);
  80011b4:	2164      	movs	r1, #100	; 0x64
  80011b6:	481a      	ldr	r0, [pc, #104]	; (8001220 <potentiometer_value+0x84>)
  80011b8:	f002 fa1a 	bl	80035f0 <HAL_ADC_PollForConversion>
-		x += mapfloat(HAL_ADC_GetValue(&hadc1), 0, 1023, -5, 5);
+		x += mapfloat(HAL_ADC_GetValue(potentiometerADC), 0, 1023, -5, 5);
  80011bc:	4818      	ldr	r0, [pc, #96]	; (8001220 <potentiometer_value+0x84>)
  80011be:	f002 faa2 	bl	8003706 <HAL_ADC_GetValue>
  80011c2:	ee07 0a90 	vmov	s15, r0
