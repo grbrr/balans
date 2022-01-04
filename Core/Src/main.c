@@ -213,11 +213,12 @@ int main(void) {
 			// loop_timer przepełni się po 70 minutach, jeśli robot ma działać dłużej należy zmienić metodę pomiaru czasu
 			time = (getCurrentMicros() - loop_timer) * 1e-6;
 			loop_timer = getCurrentMicros();
-			/* USER CODE END WHILE */
-
-			/* USER CODE BEGIN 3 */
 		}
 	}
+	/* USER CODE END WHILE */
+
+	/* USER CODE BEGIN 3 */
+
 	/* USER CODE END 3 */
 }
 
