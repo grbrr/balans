@@ -1,7 +1,7 @@
-ibus.c:18:6:ibus_init	8	static
-ibus.c:23:6:ibus_read	16	static
-ibus.c:37:6:ibus_is_valid	4	static
-ibus.c:43:6:ibus_checksum	24	static
-ibus.c:57:6:ibus_update	24	static
-ibus.c:68:6:ibus_soft_failsafe	24	static
-ibus.c:90:6:ibus_reset_failsafe	4	static
+ibus.c:15:6:ibus_init	8	static
+ibus.c:19:6:ibus_read	16	static
+ibus.c:31:6:ibus_is_valid	4	static
+ibus.c:37:6:ibus_checksum	24	static
+ibus.c:49:6:ibus_update	24	static
+ibus.c:60:6:ibus_soft_failsafe	24	static
+ibus.c:81:6:ibus_reset_failsafe	4	static

@@ -4,8 +4,8 @@
  *  Created on: Feb 4, 2021
  *      Author: mokhwasomssi
  *      czasem potrzebny restart, dma w circular nie zawsze zaczyna bufor
- *      od właściwego bajtu (ramka musi być postaci - [0x20 0x40 .. dane .. control_sum])
- *      dopasować liczbę kanałów (teraz chyba 7 powinno być)
+ *      od właściwego bajtu (ramka musi być postaci - [0x20 0x40 .. dane .. control_sum]),
+ *		jeżeli nie jest to robot nie reaguje i wymaga resetu zasialania
  */
 
 #ifndef __IBUS_H__
@@ -16,7 +16,7 @@
 
 /* User configuration */
 #define IBUS_UART				(&huart6)
-#define IBUS_USER_CHANNELS		10		// Use 8 channels
+#define IBUS_USER_CHANNELS		10		// Use 10 channels
 
 /* Defines */
 #define IBUS_LENGTH				0x20	// 32 bytes

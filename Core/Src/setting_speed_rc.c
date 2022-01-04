@@ -35,8 +35,6 @@ void horizontal_control(uint16_t *control_data) {
 	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	balancing_mode = control_data[8 - 1];
 
-
-
 	V_max = map(V_max_apar, 1000, 2000, 0, 500);
 	//                                      / tu jest wartocm maskymalnej rotacji
 	Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
@@ -63,7 +61,8 @@ void horizontal_control(uint16_t *control_data) {
 	HAL_Delay(7);//need wait a little before next usage, may reduce later (should be at least 7 ms)
 }
 
-float pid_output = 0, suma_e_n = 0, steering_angle = 0;
+float pid_output = 0, suma_e_n = 0, steering_angle = 0, poprzedni_e_n = 0,
+		auto_balance = 0;
 int start;
 int vertical_control(uint16_t *control_data, float angle) {
 
@@ -72,18 +71,16 @@ int vertical_control(uint16_t *control_data, float angle) {
 	V_max_apar = control_data[5 - 1];	//regulacja predkosci silnikow
 	Relay_SW = control_data[6 - 1];	//zalacz silniki
 	balancing_mode = control_data[8 - 1];
-	//correction_raw = control_data[7 - 1];
 
 
-
-	//int16_t correction_max = map(correction_raw, 1000, 2000, 0, 5);
 	V_max = map(V_max_apar, 1000, 2000, 0, 7); //zadawany kat
 	//                                      / tu jest wartocm maskymalnej rotacji
 	Fi_max = map(Fi_max_apar, 1000, 2000, 0, 200);
 
 	steering_angle = mapfloat((float) V_apar, 1000, 2000, (float) -V_max,
 			(float) V_max);
-	pid_output = pid_calculations(angle, &suma_e_n, steering_angle, V_bok_apar);
+	pid_output = pid_calculations(angle, &suma_e_n, &poprzedni_e_n,
+			&auto_balance, steering_angle, V_bok_apar);
 
 	if ((Relay_SW > 1900) && (Relay_SW < 2100) && angle > (theta_ref - 45)
 			&& angle < (theta_ref + 45) && (balancing_mode > 1900)
@@ -95,6 +92,8 @@ int vertical_control(uint16_t *control_data, float angle) {
 		suma_e_n = 0;
 		pid_output = 0;
 		start = 0;
+		poprzedni_e_n = 0;
+		auto_balance = 0;
 	}
 
 	if (Jazda == 1) {
@@ -112,5 +111,8 @@ int vertical_control(uint16_t *control_data, float angle) {
 //	Robot_V = pid_output;
 //	Robot_Fi = 0;
 	Send(Robot_Fi, Robot_V);
-	if (start==1) return 2; else return 3;
+	if (start == 1)
+		return 2;
+	else
+		return 3;
 }

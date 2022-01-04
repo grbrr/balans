@@ -11,10 +11,12 @@
 #include "i2c.h"
 #include <math.h>
 
-#define MPU6050_ADDR 0xD0
+#define mpuI2C &hi2c1
 
-#define WHO_AM_I 0x75
-#define PWR_MGMT_1 0x6B
+#define MPU6050_ADDR 0x68<<1 //adres I2C wymaga przesunięcia bitowego
+
+#define WHO_AM_I 0x75		//powinno być 0x68 ale to chiński klon, w przypadku problemów z innymi chipami zastosować jakiś I2C scanner
+#define PWR_MGMT_1 0x6B		//info o rejestrach w dokumentacji mpu-6050
 
 #define SMPLRT_DIV 0x19
 #define GYRO_CONFIG 0x1B

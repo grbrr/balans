@@ -11,6 +11,8 @@
 #include "tim.h"
 #include "additives.h"
 
+#define servoTIM &htim11
+
 void camera_angle(float angle);
 
 #endif /* INC_SERVO_H_ */
